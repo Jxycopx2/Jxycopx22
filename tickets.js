@@ -13,6 +13,10 @@ const {
     ChannelType,
     ActivityType,
     Status,
+    EmbedBuilder,
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle,
 } = require('discord.js');
 
 const TICKET_BOT_TOKEN = process.env.TICKET_BOT_TOKEN || process.env.BOT_TOKEN_2;
@@ -44,6 +48,7 @@ const EMOJIS = {
     claim: { name: '291197pinkbunnyclap', id: '1549498511685455952' },
     transcript: { name: '357726pinkbunnyshy', id: '1549498563896016977' },
     close: { name: '699622289376804917', id: '1363251868347928801' },
+    clear: { name: 'trash', id: '1377760283870629969' },
 };
 
 if (!TICKET_BOT_TOKEN) {
@@ -124,15 +129,11 @@ function escapeHtml(text) {
         .replace(/'/g, '&#039;');
 }
 
-// ============================================================
-// ============== RENDER DISCORD COMPONENTS V2 ================
-// ============================================================
 function renderComponent(comp, userMap = {}) {
     if (!comp) return '';
 
     const type = comp.type;
 
-    // ===== Container (type 17) =====
     if (type === 17) {
         const accent = comp.accentColor != null
             ? '#' + comp.accentColor.toString(16).padStart(6, '0')
@@ -144,7 +145,6 @@ function renderComponent(comp, userMap = {}) {
         return `<div class="embed" style="border-left-color: ${accent}">${inner}</div>`;
     }
 
-    // ===== Section (type 9) =====
     if (type === 9) {
         let textContent = '';
         let accessoryHtml = '';
@@ -173,7 +173,6 @@ function renderComponent(comp, userMap = {}) {
         return `<div class="embed-desc" style="margin-bottom:4px">${formatDiscordText(content, userMap)}</div>`;
     }
 
-    // ===== Divider (type 14) =====
     if (type === 14) {
         const spacing = comp.spacing === 2 ? '12px' : '6px';
         return `<div class="divider" style="margin:${spacing} 0"></div>`;
@@ -1024,19 +1023,19 @@ function formatDiscordText(text, userMap = {}) {
 
 function buildTicketPanel() {
     return {
-        flags: 32768, 
+        flags: 32768,
         components: [
             {
-                type: 17, 
+                type: 17,
                 accent_color: 0x000000,
                 components: [
                     {
-                        type: 10, 
+                        type: 10,
                         content: '# `🎫`  **TICKET SYSTEM**'
                     },
-                    { type: 14, divider: true, spacing: 1 }, 
+                    { type: 14, divider: true, spacing: 1 },
                     {
-                        type: 10, 
+                        type: 10,
                         content:
                             `-  **ติดต่อซื้อของ** — สั่งซื้อสินค้า / สอบถามราคา\n\n` +
                             `-  **กลางของ** — ใช้บริการกลางของ ฝากซื้อ-ขาย\n\n` +
@@ -1099,12 +1098,20 @@ function buildTypeSelectMessage() {
                                 type: 3,
                                 custom_id: 'ticket_type_select',
                                 placeholder: '📋 เลือกประเภท Ticket ที่ต้องการ...',
-                                options: TICKET_TYPES.map(t => ({
-                                    label: t.label,
-                                    description: t.description,
-                                    value: t.id,
-                                    emoji: { animated: true, name: t.emoji.name, id: t.emoji.id }
-                                }))
+                                options: [
+                                    ...TICKET_TYPES.map(t => ({
+                                        label: t.label,
+                                        description: t.description,
+                                        value: t.id,
+                                        emoji: { animated: true, name: t.emoji.name, id: t.emoji.id }
+                                    })),
+                                    {
+                                        label: 'ล้างตัวเลือก',
+                                        description: 'รีเซ็ตกลับเป็นค่าเริ่มต้น',
+                                        value: 'clear',
+                                        emoji: { animated: true, name: EMOJIS.clear.name, id: EMOJIS.clear.id },
+                                    },
+                                ]
                             }
                         ]
                     }
@@ -1330,7 +1337,31 @@ async function closeTicket(interaction) {
         return interaction.reply({ content: '❌ ห้องนี้ไม่ใช่ Ticket', ephemeral: true });
     }
 
-    await interaction.reply({ content: '🔒 กำลังปิด Ticket... ระบบจะลบห้องใน 5 วินาที' });
+    const guildIcon = interaction.guild.iconURL({ size: 256 }) ?? null;
+    const deleteAt = Math.floor(Date.now() / 1000) + 5;
+
+    const closeEmbed = new EmbedBuilder()
+        .setColor(COLORS.danger)
+        .setAuthor({
+            name: `${interaction.guild.name} • ระบบ Ticket`,
+            iconURL: guildIcon ?? undefined,
+        })
+        .setTitle('🔒 กำลังปิด Ticket')
+        .setDescription(
+            '- **ขอบคุณที่ใช้บริการค้าบ** `💙`\n' +
+            '`ระบบกำลังลบห้องนี้ในอีกไม่กี่วินาที`'
+        )
+        .addFields(
+            { name: '👤 ปิดโดย', value: `<@${interaction.user.id}>`, inline: true },
+            { name: '📁 ห้อง', value: `\`${channel.name}\``, inline: true },
+            { name: '⏳ ลบห้อง', value: `<t:${deleteAt}:R>`, inline: true }
+        )
+        .setFooter({ text: interaction.guild.name, iconURL: guildIcon ?? undefined })
+        .setTimestamp();
+
+    if (guildIcon) closeEmbed.setThumbnail(guildIcon);
+
+    await interaction.reply({ embeds: [closeEmbed] });
 
     setTimeout(async () => {
         try { await channel.delete(`Ticket closed by ${interaction.user.tag}`); }
@@ -1501,21 +1532,77 @@ async function transcriptTicket(interaction) {
             ticketType,
         });
 
-        await owner.send({
-            content:
-                `📄 **บันทึกบทสนทนา Ticket**\n` +
-                `> 📁 ห้อง: \`${channel.name}\`\n` +
-                `> 💬 จำนวน: \`${sorted.length}\` ข้อความ\n\n` +
-                `🔗 **ลิงก์ดูบันทึก:** ${url}`,
-        });
+        const guildIcon = interaction.guild.iconURL({ size: 256 }) ?? null;
+
+        const dmEmbed = new EmbedBuilder()
+            .setColor(COLORS.primary)
+            .setAuthor({
+                name: `${interaction.guild.name} • ระบบ Ticket`,
+                iconURL: guildIcon ?? undefined,
+            })
+            .setTitle('📄 บันทึกบทสนทนา Ticket')
+            .setDescription(
+                '- **ขอบคุณที่ใช้บริการค้าบ** `💙`\n' +
+                '`กดปุ่มด้านล่างเพื่อดูบันทึกบทสนทนาทั้งหมดได้เลย`'
+            )
+            .addFields(
+                { name: '📁 ห้อง', value: `\`${channel.name}\``, inline: true },
+                { name: '💬 จำนวนข้อความ', value: `\`${sorted.length}\` ข้อความ`, inline: true },
+                { name: '🕒 บันทึกเมื่อ', value: `<t:${Math.floor(Date.now() / 1000)}:R>`, inline: true }
+            )
+            .setFooter({ text: interaction.guild.name, iconURL: guildIcon ?? undefined })
+            .setTimestamp();
+
+        if (guildIcon) dmEmbed.setThumbnail(guildIcon);
+
+        const dmRow = new ActionRowBuilder().addComponents(
+            new ButtonBuilder()
+                .setLabel('ดูบันทึกบทสนทนา')
+                .setEmoji('<a:13071f514:1543925599331160094>')
+                .setStyle(ButtonStyle.Link)
+                .setURL(url)
+        );
+
+        await owner.send({ embeds: [dmEmbed], components: [dmRow] });
+
+        const successEmbed = new EmbedBuilder()
+            .setColor(COLORS.success)
+            .setTitle('✅ ส่งบันทึกสำเร็จ')
+            .setDescription(`- **ส่งลิงก์บันทึกไปที่ DM ของ** <@${ownerId}> **เรียบร้อยแล้ว**`)
+            .addFields(
+                { name: '📁 ห้อง', value: `\`${channel.name}\``, inline: true },
+                { name: '💬 ข้อความ', value: `\`${sorted.length}\``, inline: true }
+            )
+            .setTimestamp();
+
+        const successRow = new ActionRowBuilder().addComponents(
+            new ButtonBuilder()
+                .setLabel('เปิดดูบันทึก')
+                .setEmoji('<a:13071f514:1543925599331160094>')
+                .setStyle(ButtonStyle.Link)
+                .setURL(url)
+        );
 
         return interaction.editReply({
-            content: `✅ ส่งลิงก์บันทึกไปที่ DM ของ <@${ownerId}> แล้ว\n🔗 ${url}`,
+            content: '',
+            embeds: [successEmbed],
+            components: [successRow],
         });
     } catch (err) {
         console.error('Transcript error:', err.message);
+        const errorEmbed = new EmbedBuilder()
+            .setColor(COLORS.danger)
+            .setTitle('❌ ส่ง DM ไม่สำเร็จ')
+            .setDescription(
+                `ไม่สามารถส่งข้อความไปหา <@${ownerId}> ได้\n` +
+                `> อาจปิดรับข้อความส่วนตัวจากเซิร์ฟเวอร์`
+            )
+            .setTimestamp();
+
         return interaction.editReply({
-            content: `❌ ไม่สามารถส่ง DM ไปหา <@${ownerId}> ได้ (อาจปิดรับข้อความจากเซิร์ฟเวอร์)`,
+            content: '',
+            embeds: [errorEmbed],
+            components: [],
         });
     }
 }
@@ -1584,6 +1671,13 @@ client.on(Events.InteractionCreate, async (interaction) => {
             if (interaction.customId === 'ticket_type_select') {
                 const typeId = interaction.values[0];
                 await interaction.deferUpdate();
+
+                // ล้างตัวเลือก: ส่งเมนูเดิมใหม่ให้ dropdown รีเซ็ต
+                if (typeId === 'clear') {
+                    const payload = buildTypeSelectMessage();
+                    payload.flags = 32768 | 64;
+                    return interaction.editReply(payload);
+                }
 
                 try {
                     const ticketChannel = await createTicketChannel(interaction, typeId);
