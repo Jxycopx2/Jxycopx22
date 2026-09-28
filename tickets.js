@@ -168,7 +168,6 @@ function renderComponent(comp, userMap = {}) {
         return textContent;
     }
 
-    // ===== TextDisplay (type 10) =====
     if (type === 10) {
         const content = comp.content || '';
         return `<div class="embed-desc" style="margin-bottom:4px">${formatDiscordText(content, userMap)}</div>`;
@@ -180,7 +179,6 @@ function renderComponent(comp, userMap = {}) {
         return `<div class="divider" style="margin:${spacing} 0"></div>`;
     }
 
-    // ===== MediaGallery (type 12) =====
     if (type === 12) {
         let imgs = '';
         if (comp.items) {
@@ -193,7 +191,6 @@ function renderComponent(comp, userMap = {}) {
         return imgs;
     }
 
-    // ===== ActionRow (type 1) =====
     if (type === 1) {
         let buttons = '';
         if (comp.components) {
@@ -218,7 +215,6 @@ function renderComponent(comp, userMap = {}) {
         return `<div class="action-row">${buttons}</div>`;
     }
 
-    // ===== Thumbnail (type 11) =====
     if (type === 11) {
         if (comp.media?.url) {
             return `<img src="${escapeHtml(comp.media.url)}" class="thumb-sm">`;
@@ -259,15 +255,11 @@ function renderAccessory(acc) {
     return '';
 }
 
-// ============================================================
-// ============== BUILD HTML (Beautiful Colorful UI) ==========
-// ============================================================
 function buildTranscriptHtml({ channel, messages, owner, userMap = {} }) {
     const total = messages.length;
     const firstMsg = messages[0];
     const createdTs = firstMsg ? firstMsg.createdTimestamp : Date.now();
 
-    // จัดกลุ่มข้อความต่อเนื่อง
     const grouped = [];
     let lastAuthorId = null;
     let lastTs = 0;
@@ -286,7 +278,6 @@ function buildTranscriptHtml({ channel, messages, owner, userMap = {} }) {
         lastTs = m.createdTimestamp;
     }
 
-    // สร้าง HTML ต่อกลุ่ม
     const messagesHtml = grouped.map(group => {
         const author = group.author;
         const avatar = author.displayAvatarURL({ extension: 'png', size: 128 });
@@ -317,7 +308,6 @@ function buildTranscriptHtml({ channel, messages, owner, userMap = {} }) {
                 });
             }
 
-            // ========== EMBEDS แบบเดิม ==========
             if (m.embeds && m.embeds.length > 0) {
                 m.embeds.forEach(emb => {
                     const accentColor = emb.color != null
@@ -343,7 +333,6 @@ function buildTranscriptHtml({ channel, messages, owner, userMap = {} }) {
                 });
             }
 
-            // ========== COMPONENTS V2 ==========
             if (m.components && m.components.length > 0) {
                 m.components.forEach(comp => {
                     contentHtml += renderComponent(comp, userMap);
@@ -521,7 +510,6 @@ function buildTranscriptHtml({ channel, messages, owner, userMap = {} }) {
         white-space: nowrap;
     }
 
-    /* ============ MAIN CHAT ============ */
     .chat {
         flex: 1;
         display: flex;
@@ -599,7 +587,7 @@ function buildTranscriptHtml({ channel, messages, owner, userMap = {} }) {
     }
     .chat-messages::-webkit-scrollbar-track { background: transparent; }
 
-    /* ============ WELCOME ============ */
+
     .welcome {
         padding: 16px 24px 28px;
         margin-bottom: 8px;
@@ -639,7 +627,6 @@ function buildTranscriptHtml({ channel, messages, owner, userMap = {} }) {
         font-size: 14px;
     }
 
-    /* ============ MESSAGE ============ */
     .message-group { padding: 0 24px; }
     .message {
         display: flex;
@@ -762,7 +749,6 @@ function buildTranscriptHtml({ channel, messages, owner, userMap = {} }) {
         color: var(--accent-3);
     }
 
-    /* ============ EMBED ============ */
     .embed {
         margin-top: 8px;
         padding: 16px;
@@ -859,7 +845,6 @@ function buildTranscriptHtml({ channel, messages, owner, userMap = {} }) {
         object-fit: cover;
     }
 
-    /* ============ END ============ */
     .chat-end {
         padding: 40px 24px;
         text-align: center;
@@ -882,7 +867,7 @@ function buildTranscriptHtml({ channel, messages, owner, userMap = {} }) {
         border-radius: 0 0 4px 4px;
     }
 
-    /* ============ MOBILE ============ */
+
     @media (max-width: 768px) {
         .sidebar { display: none; }
         .message .body { padding-right: 16px; }
@@ -983,30 +968,25 @@ function buildTranscriptHtml({ channel, messages, owner, userMap = {} }) {
 </html>`;
 }
 
-// ========== Format Discord text ==========
 function formatDiscordText(text, userMap = {}) {
     if (!text) return '';
     let html = escapeHtml(text);
 
-    // Mentions: <@123> or <@!123>
     html = html.replace(/&lt;@!?(\d+)&gt;/g, (m, id) => {
         const name = userMap[id] || `${id.slice(-4)}`;
         return `<span class="mention">@${escapeHtml(name)}</span>`;
     });
 
-    // Role mentions: <@&123>
     html = html.replace(/&lt;@&amp;(\d+)&gt;/g, (m, id) => {
         const name = userMap[id] || `role:${id.slice(-4)}`;
         return `<span class="mention">@${escapeHtml(name)}</span>`;
     });
 
-    // Channel mentions: <#123>
     html = html.replace(/&lt;#(\d+)&gt;/g, (m, id) => {
         const name = userMap[id] || `ch:${id.slice(-4)}`;
         return `<span class="mention">#${escapeHtml(name)}</span>`;
     });
 
-    // Discord timestamp: <t:123:R> etc.
     html = html.replace(/&lt;t:(\d+)(?::([tTdDfFR]))?&gt;/g, (m, ts, fmt) => {
         const d = new Date(parseInt(ts) * 1000);
         const now = Date.now();
@@ -1025,10 +1005,8 @@ function formatDiscordText(text, userMap = {}) {
         return `<span style="color:var(--text-muted)">${d.toLocaleString('th-TH')}</span>`;
     });
 
-    // Custom emoji
     html = html.replace(/&lt;a?:(\w+):(\d+)&gt;/g, (m, name) => `<span style="display:inline-block;vertical-align:middle">:${name}:</span>`);
 
-    // Markdown
     html = html.replace(/\*\*(.+?)\*\*/g, '<strong style="color:var(--text-primary);font-weight:700">$1</strong>');
     html = html.replace(/(?<!\*)\*([^*\n]+?)\*(?!\*)/g, '<em>$1</em>');
     html = html.replace(/_([^_\n]+?)_/g, '<em>$1</em>');
@@ -1037,7 +1015,6 @@ function formatDiscordText(text, userMap = {}) {
     html = html.replace(/`([^`\n]+?)`/g, '<code style="background:rgba(168,85,247,0.15);padding:2px 6px;border-radius:4px;font-family:Consolas,monospace;font-size:0.85em;border:1px solid rgba(168,85,247,0.25);color:#e9d5ff">$1</code>');
     html = html.replace(/```([\s\S]+?)```/g, '<pre style="background:var(--bg-tertiary);padding:14px 16px;border-radius:8px;font-family:Consolas,monospace;font-size:0.85em;overflow-x:auto;margin:8px 0;border:1px solid var(--border);color:var(--text-primary)"><code>$1</code></pre>');
 
-    // Linkify URLs (ต้องทำก่อน \n → <br>)
     html = html.replace(/(https?:\/\/[^\s<"]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer" style="color:var(--accent-2);text-decoration:underline;word-break:break-all">$1</a>');
 
     html = html.replace(/\n/g, '<br>');
@@ -1047,26 +1024,25 @@ function formatDiscordText(text, userMap = {}) {
 
 function buildTicketPanel() {
     return {
-        flags: 32768, // เปิดใช้งาน Components V2
+        flags: 32768, 
         components: [
             {
-                type: 17, // Container หลัก
+                type: 17, 
                 accent_color: 0x000000,
                 components: [
                     {
-                        type: 10, // ข้อความหัวข้อ (Text Display)
+                        type: 10, 
                         content: '# `🎫`  **TICKET SYSTEM**'
                     },
-                    { type: 14, divider: true, spacing: 1 }, // เส้นคั่น
+                    { type: 14, divider: true, spacing: 1 }, 
                     {
-                        type: 10, // รายละเอียดข้อความ
+                        type: 10, 
                         content:
                             `-  **ติดต่อซื้อของ** — สั่งซื้อสินค้า / สอบถามราคา\n\n` +
                             `-  **กลางของ** — ใช้บริการกลางของ ฝากซื้อ-ขาย\n\n` +
                             `-  **สอบถามทั่วไป** — สอบถามข้อมูลต่างๆ`
                     },
                     { type: 14, divider: false, spacing: 1 },
-                    // รูปภาพขนาดใหญ่เต็มตา (Media Gallery)
                     {
                         type: 12,
                         items: [
@@ -1195,9 +1171,6 @@ function buildTicketWelcome({ user, typeInfo, ticketNumber }) {
     };
 }
 
-// ============================================================
-// ==================== TICKET LOGIC ==========================
-// ============================================================
 function getCategoryIdForType(typeId) {
     if (TICKET_CATEGORY_IDS[typeId]) return TICKET_CATEGORY_IDS[typeId];
     return TICKET_CATEGORY_ID || null;
@@ -1679,12 +1652,9 @@ client.once(Events.ClientReady, async (c) => {
     }
 });
 
-// ============================================================
-// ==================== WEB SERVER ============================
-// ============================================================
+
 const app = express();
 
-// Health check (สำหรับ Render / UptimeRobot)
 app.get('/health', (req, res) => {
     res.status(200).send('OK');
 });
@@ -2302,9 +2272,6 @@ app.listen(WEB_PORT, () => {
     console.log(`✅ Web server online: ${WEB_BASE_URL}`);
 });
 
-// ============================================================
-// ==================== START BOT =============================
-// ============================================================
 client.login(TICKET_BOT_TOKEN).catch(err => {
     console.error('❌ Ticket bot login failed:', err.message);
     process.exit(1);
