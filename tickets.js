@@ -28,7 +28,6 @@ const WEB_BASE_URL = process.env.WEB_BASE_URL || `http://localhost:${WEB_PORT}`;
 
 const TICKET_CATEGORY_IDS = {
     purchase: process.env.TICKET_CATEGORY_PURCHASE || '',
-    middleman: process.env.TICKET_CATEGORY_MIDDLEMAN || '',
     general: process.env.TICKET_CATEGORY_GENERAL || '',
 };
 const TICKET_CATEGORY_ID = process.env.TICKET_CATEGORY_ID || '';
@@ -41,7 +40,6 @@ const MAX_TICKETS_PER_USER = 3;
 
 const EMOJIS = {
     purchase: { name: '32877animatedarrowbluelite', id: '1542850802966601849' },
-    middleman: { name: '91490animatedarrowblue', id: '1542851262083502080' },
     general: { name: '15072animatedarrowpink2', id: '1542851211651452948' },
     create: { name: '129636pinkbunnybroken', id: '1549498465191591936' },
     myList: { name: '177869pinkbunnysweat', id: '1549498480672776365' },
@@ -74,14 +72,6 @@ const TICKET_TYPES = [
         emoji: EMOJIS.purchase,
         color: COLORS.success,
         intro: 'กรุณาแจ้งรายการสินค้าที่ต้องการซื้อ + จำนวน + ช่องทางชำระเงิน',
-    },
-    {
-        id: 'middleman',
-        label: 'กลางของ',
-        description: 'ใช้บริการกลางของ / ฝากซื้อ-ขาย',
-        emoji: EMOJIS.middleman,
-        color: COLORS.gold,
-        intro: 'กรุณาแจ้งรายละเอียดสินค้า + คู่ค้า + ราคาที่ตกลงกัน',
     },
     {
         id: 'general',
@@ -1038,7 +1028,6 @@ function buildTicketPanel() {
                         type: 10,
                         content:
                             `-  **ติดต่อซื้อของ** — สั่งซื้อสินค้า / สอบถามราคา\n\n` +
-                            `-  **กลางของ** — ใช้บริการกลางของ ฝากซื้อ-ขาย\n\n` +
                             `-  **สอบถามทั่วไป** — สอบถามข้อมูลต่างๆ`
                     },
                     { type: 14, divider: false, spacing: 1 },
@@ -1087,7 +1076,6 @@ function buildTypeSelectMessage() {
                         type: 10,
                         content:
                             `-  **ติดต่อซื้อของ** — สั่งซื้อสินค้า / สอบถามราคา\n\n` +
-                            `-  **กลางของ** — ใช้บริการกลางของ ฝากซื้อ-ขาย\n\n` +
                             `-  **สอบถามทั่วไป** — สอบถามข้อมูลต่างๆ`
                     },
                     { type: 14, divider: false, spacing: 2 },
@@ -1798,7 +1786,6 @@ app.get('/', (req, res) => {
 
     const typeLabels = {
         purchase: 'Purchase',
-        middleman: 'Middleman',
         general: 'General',
         unknown: 'Other',
     };
