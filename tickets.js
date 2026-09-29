@@ -1710,7 +1710,7 @@ client.once(Events.ClientReady, async (c) => {
     console.log(`✅ Ticket Bot online: ${c.user.tag}`);
 
     c.user.setPresence({
-        activities: [{ name: '🎫 ระบบ Ticket 24 ชม.', type: ActivityType.Watching }],
+        activities: [{ name: 'Vendetta Shop', type: ActivityType.Watching }],
         status: Status.Online,
     });
 
