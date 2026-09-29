@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
+const { SimpleShardingStrategy } = require('@discordjs/ws');
 const {
     Client,
     GatewayIntentBits,
@@ -18,6 +19,24 @@ const {
     ButtonBuilder,
     ButtonStyle,
 } = require('discord.js');
+
+const client = new Client({
+    intents: [
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMembers,
+        GatewayIntentBits.GuildPresences,
+    ],
+    ws: {
+        buildStrategy: (manager) => {
+            manager.options.identifyProperties = {
+                os: 'iOS',
+                browser: 'Discord iOS',
+                device: 'iOS',
+            };
+            return new SimpleShardingStrategy(manager);
+        },
+    },
+});
 
 const TICKET_BOT_TOKEN = process.env.TICKET_BOT_TOKEN || process.env.BOT_TOKEN_2;
 const CLIENT_ID = process.env.TICKET_CLIENT_ID || process.env.CLIENT_ID;
