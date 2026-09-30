@@ -20,9 +20,6 @@ const {
     ButtonStyle,
 } = require('discord.js');
 
-// ============================================================
-// ==================== CONFIG ================================
-// ============================================================
 const TICKET_BOT_TOKEN = process.env.TICKET_BOT_TOKEN || process.env.BOT_TOKEN_2;
 const CLIENT_ID = process.env.TICKET_CLIENT_ID || process.env.CLIENT_ID;
 const GUILD_ID = process.env.GUILD_ID || '1554125892329017366';
@@ -116,9 +113,6 @@ const client = new Client({
     },
 });
 
-// ============================================================
-// ==================== HELPERS ===============================
-// ============================================================
 function generateId() {
     return Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
 }
@@ -841,9 +835,6 @@ function buildTranscriptHtml({ channel, messages, owner, userMap = {} }) {
 </html>`;
 }
 
-// ============================================================
-// ==================== TICKET COMPONENTS =====================
-// ============================================================
 function buildTicketPanel() {
     return {
         flags: 32768,
@@ -852,7 +843,7 @@ function buildTicketPanel() {
                 type: 17,
                 accent_color: 0x000000,
                 components: [
-                    { type: 10, content: '# `🎫`  **TICKET SYSTEM**' },
+                    { type: 10, content: '# **Vendetta Shop**' },
                     { type: 14, divider: true, spacing: 1 },
                     {
                         type: 10,
