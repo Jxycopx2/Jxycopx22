@@ -857,7 +857,7 @@ function buildTicketPanel() {
                         items: [
                             {
                                 media: {
-                                    url: 'https://media.discordapp.net/attachments/1552288828910473267/1554483641625608324/1790688171573.jpg?ex=6abd0d35&is=6abbbbb5&hm=8a97fa21b45fe2abd17a115976b30476997391a140d5dee0d4c55e3bfb77b991&=&format=webp'
+                                    url: 'https://media.discordapp.net/attachments/1554478786777579624/1555272641517060106/a3fdf7d0-1c2f-49bb-ac05-6f88f0243b86.png?backend=b2&ex=6abfec05&is=6abe9a85&hm=e8ee463a9fea817b78b83f99739cb1d6f221347b44426015ded26bea3fe68f74&=&format=webp&quality=lossless'
                                 }
                             }
                         ]
